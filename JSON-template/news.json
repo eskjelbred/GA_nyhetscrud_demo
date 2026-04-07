@@ -1,0 +1,69 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "Kari Hansen",
+      "email": "kari.hansen@example.com",
+      "password": "passord123",
+      "role": "admin",
+      "created": "2025-01-15T08:00:00"
+    },
+    {
+      "id": 2,
+      "name": "Jonas Berg",
+      "email": "jonas.berg@example.com",
+      "password": "hunter2",
+      "role": "journalist",
+      "created": "2025-03-20T09:30:00"
+    },
+    {
+      "id": 3,
+      "name": "Sofie Dahl",
+      "email": "sofie.dahl@example.com",
+      "password": "sofie2025",
+      "role": "journalist",
+      "created": "2025-06-01T11:15:00"
+    }
+  ],
+  "news": [
+    {
+      "id": 1,
+      "authorId": 2,
+      "title": "Ny teknologi revolusjonerer norsk havbruk",
+      "slug": "ny-teknologi-norsk-havbruk",
+      "summary": "Norske oppdrettsselskaper tar i bruk AI for å overvåke fiskehelse i sanntid.",
+      "body": "Flere store oppdrettsselskaper langs norskekysten har begynt å implementere kunstig intelligens for kontinuerlig overvåking av laks og ørret. Systemene kan oppdage sykdomstegn opptil to uker tidligere enn tradisjonelle metoder, noe som kan spare næringen for millioner av kroner hvert år.",
+      "category": "teknologi",
+      "published": true,
+      "publishedAt": "2026-03-10T07:00:00",
+      "created": "2026-03-09T14:30:00",
+      "updated": "2026-03-09T14:30:00"
+    },
+    {
+      "id": 2,
+      "authorId": 3,
+      "title": "Oslo setter rekord i sykkelbruk",
+      "slug": "oslo-rekord-sykkelbruk",
+      "summary": "Antall sykkelturer i Oslo passerte 10 millioner i 2025 — en økning på 40 prosent.",
+      "body": "Byrådets satsing på sykkelveinettet ser ut til å bære frukter. Nye tall fra Oslosykkel viser at innbyggerne tok over 10 millioner sykkelturer i løpet av 2025. Infrastrukturinvesteringer på over 300 millioner kroner de siste tre årene krediteres som hovedårsak.",
+      "category": "samfunn",
+      "published": true,
+      "publishedAt": "2026-03-12T08:30:00",
+      "created": "2026-03-11T16:00:00",
+      "updated": "2026-03-11T16:00:00"
+    },
+    {
+      "id": 3,
+      "authorId": 2,
+      "title": "Norsk spillstudio klar med ny tittel",
+      "slug": "norsk-spillstudio-ny-tittel",
+      "summary": "Bergen-baserte Frostbyte Games avduker sitt mest ambisiøse prosjekt til nå.",
+      "body": "Etter tre år i utvikling er Frostbyte Games endelig klar til å vise frem sitt nye spill under GDC i San Francisco. Spillet kombinerer norsk folkelore med åpen verden-gameplay og er allerede nominert til «Most Anticipated Indie Game» av Game Awards komiteen.",
+      "category": "kultur",
+      "published": false,
+      "publishedAt": null,
+      "created": "2026-03-14T10:00:00",
+      "updated": "2026-03-14T10:00:00"
+    }
+  ]
+}

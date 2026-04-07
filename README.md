@@ -34,7 +34,18 @@ cd crudops
 npm install
 ```
 
-Lag en `.env`-fil basert på `.env.example` og fyll inn `TEMPLATE` og `API_KEY`. Start deretter API-et:
+Kopier JSON-templaten fra dette prosjektet inn i CrudOps sin `templates/`-mappe:
+
+```bash
+cp <sti-til-nyhetscrud>/JSON-template/news.json <sti-til-crudops>/templates/news.json
+```
+
+Lag deretter en `.env`-fil basert på `.env.example` og sett:
+
+- `TEMPLATE=news.json`
+- `API_KEY` — en selvvalgt nøkkel (bare bokstaver og tall, ingen mellomrom)
+
+Start API-et:
 
 ```bash
 npm start
@@ -66,7 +77,9 @@ nyhetscrud/
 ├── css/
 │   └── style.css    # Styling for hele applikasjonen
 ├── js/
-│   └── script.js    # JavaScript med TODO-oppgaver
+│   └── script.js         # JavaScript med TODO-oppgaver
+├── JSON-template/
+│   └── news.json         # Datamal for CrudOps — kopieres til templates/-mappen i API-et
 └── README.md
 ```
 
