@@ -1,94 +1,264 @@
-// TODO: Sett BASE_URL til riktig adresse.
-// Hint: crudops kjører på port 3000, og alle endepunkter er under /api
-const BASE_URL = "";
-
-// TODO: Sett API_KEY til nøkkelen som ligger i crudops/.env
-// Den trengs i Authorization-headeren for POST, PUT og DELETE
-const API_KEY = "";
-
-// TODO: Opprett en variabel for å lagre listen over brukere
-// TODO: Opprett en variabel for å holde styr på hvilken sak vi redigerer (null = ingen)
-
-// TODO: Skriv en funksjon getUserName(authorId)
-// Den skal finne brukeren med riktig ID i users-listen
-// og returnere navnet. Hint: Array.find()
-function getUserName(authorId) {}
-
-// TODO: Skriv en funksjon resetForm()
-// Den skal:
-// 1. Nullstille skjemaet (form.reset())
-// 2. Sette form-tittelen tilbake til "Legg til nyhetssak"
-// 3. Sette submit-knappen tilbake til "Publiser"
-// 4. Nullstille editingId til null
-function resetForm() {}
-
-// TODO: Skriv en async funksjon fetchUsers()
-// Den skal hente alle brukere fra /users og lagre dem i users-variabelen
-async function fetchUsers() {}
-
-// TODO: Skriv en async funksjon fetchNews()
-// Den skal hente alle nyhetssaker fra /news
-// og sende dem videre til renderNews()
-async function fetchNews() {}
-
-// TODO: Skriv en funksjon renderNews(newsList)
-// Den skal:
-// 1. Tømme #news-list
-// 2. Vise en tom-melding hvis listen er tom
-// 3. Loope gjennom nyhetssakene og lage et kort for hver
-//
-// Hvert kort bør vise:
-// - Kategori og publiseringsstatus
-// - Tittel og ingress
-// - Forfatternavn (bruk getUserName)
-// - Rediger- og Slett-knapper med onclick
-function renderNews(newsList) {}
-
-// TODO: Skriv en async funksjon createNews(data)
-// Den skal sende en POST-forespørsel til /news med data som body
-// Husk: method, headers (Content-Type: application/json + Authorization), body (JSON.stringify)
-// NB: Du trenger ikke sende med created/updated — serveren setter disse automatisk
-// Etter vellykket respons: hent nyheter på nytt og nullstill skjemaet
-async function createNews(data) {}
-
-// TODO: Skriv en async funksjon updateNews(id, data)
-// Den skal sende en PUT-forespørsel til /news/:id
-// Husk Authorization-headeren — uten den får du 401 tilbake
-// Etter vellykket respons: hent nyheter på nytt og nullstill skjemaet
-async function updateNews(id, data) {}
-
-// TODO: Skriv en async funksjon deleteNews(id)
-// Den skal:
-// 1. Vise en bekreftelsesdialog med confirm()
-// 2. Avbryte hvis brukeren trykker "Avbryt"
-// 3. Sende en DELETE-forespørsel til /news/:id med Authorization-header
-// 4. Hente nyheter på nytt etter sletting
-async function deleteNews(id) {}
-
-// TODO: Skriv en async funksjon editNews(id)
-// Den skal:
-// 1. Hente én nyhetssak fra /news/:id
-// 2. Fylle inn alle skjemafeltene med eksisterende verdier
-// 3. Sette editingId til den aktuelle ID-en
-// 4. Oppdatere form-tittel og submit-knapp-tekst
-async function editNews(id) {}
-
-// TODO: Legg til en "submit"-lytter på #news-form
-// Husk e.preventDefault() for å stoppe siden fra å laste på nytt
-//
-// Skjemaet skal samle verdier fra alle feltene og sende
-// dem som et objekt til enten createNews() eller updateNews()
-// (avhengig av om editingId er satt)
-
-// TODO: Legg til en "click"-lytter på #cancel-btn som kaller resetForm()
-
-// TODO: Skriv en async funksjon init()
-// Den skal:
-// 1. Kalle fetchUsers()
-// 2. Kalle fetchNews()
-// 3. Bygge opp forfatter-dropdownen (#authorId) dynamisk
-//    basert på brukerne som ble hentet
-async function init() {}
-
-// Kjør init() med en gang siden lastes
+"use strict";
+const BASE_URL = "http://localhost:3000/api";
+const API_KEY = getApiKey();
+let users = [];
+let editingId = null;
+function getApiKey() {
+    return localStorage.getItem("API_KEY");
+}
+function isLoggedIn() {
+    return getApiKey() !== null;
+}
+function logout() {
+    localStorage.removeItem("API_KEY");
+    showReadOnlyView();
+}
+async function login(email, password) {
+    const response = await fetch(`${BASE_URL}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+    });
+    if (!response.ok)
+        return false;
+    const data = await response.json();
+    localStorage.setItem("API_KEY", data.API_KEY);
+    return true;
+}
+function getUserName(authorId) {
+    const user = users.find((u) => u.id === authorId);
+    return user ? user.name : "Ukjent forfatter";
+}
+function showLoggedInView() {
+    const loginSection = document.getElementById("login-section");
+    const formSection = document.getElementById("form-section");
+    const logoutBtn = document.getElementById("logout-btn");
+    if (loginSection)
+        loginSection.style.display = "none";
+    if (formSection)
+        formSection.style.display = "block";
+    if (logoutBtn)
+        logoutBtn.style.display = "block";
+    fetchNews(); // render på nytt med rediger/slett-knapper
+}
+function showReadOnlyView() {
+    const loginSection = document.getElementById("login-section");
+    const formSection = document.getElementById("form-section");
+    const logoutBtn = document.getElementById("logout-btn");
+    if (loginSection)
+        loginSection.style.display = "block";
+    if (formSection)
+        formSection.style.display = "none";
+    if (logoutBtn)
+        logoutBtn.style.display = "none";
+    fetchNews(); // render på nytt uten rediger/slett-knapper
+}
+function resetForm() {
+    const form = document.getElementById("news-form");
+    const formTitle = document.getElementById("form-title");
+    const submitBtn = document.getElementById("submit-btn");
+    form?.reset();
+    if (formTitle)
+        formTitle.textContent = "Legg til nyhetssak";
+    if (submitBtn)
+        submitBtn.textContent = "Publiser";
+    editingId = null;
+}
+async function fetchUsers() {
+    const response = await fetch(`${BASE_URL}/users`);
+    users = await response.json();
+}
+async function fetchNews() {
+    const response = await fetch(`${BASE_URL}/news`);
+    const news = await response.json();
+    renderNews(news);
+}
+function renderNews(newsList) {
+    const container = document.getElementById("news-list");
+    if (!container)
+        return;
+    container.innerHTML = "";
+    if (newsList.length === 0) {
+        container.innerHTML = `<p class="empty-state">Ingen nyhetssaker å vise.</p>`;
+        return;
+    }
+    newsList.forEach((article) => {
+        const card = document.createElement("article");
+        card.className = `news-card ${article.published ? "published" : "draft"}`;
+        const actions = isLoggedIn()
+            ? `<div class="actions">
+          <button onclick="editNews(${article.id})" class="btn btn-edit">Rediger</button>
+          <button onclick="deleteNews(${article.id})" class="btn btn-delete">Slett</button>
+        </div>`
+            : "";
+        card.innerHTML = `
+            <div class="card-header">
+                <span class="category">${article.category}</span>
+                <span class="status ${article.published ? "published" : "draft"}">
+                    ${article.published ? "Publisert" : "Kladd"}
+                </span>
+            </div>
+            <h2>${article.title}</h2>
+            <p class="summary">${article.summary}</p>
+            <p class="body">${article.body}</p>
+            <div class="card-footer">
+                <span class="author">✍️ ${getUserName(article.authorId)}</span>
+                ${actions}
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+async function createNews(data) {
+    const response = await fetch(`${BASE_URL}/news`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${API_KEY}`,
+        },
+        body: JSON.stringify(data),
+    });
+    if (response.ok) {
+        await fetchNews();
+        resetForm();
+    }
+    else {
+        alert("Noe gikk galt...");
+    }
+}
+async function updateNews(id, data) {
+    const response = await fetch(`${BASE_URL}/news/${id}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${API_KEY}`,
+        },
+        body: JSON.stringify(data),
+    });
+    if (response.ok) {
+        await fetchNews();
+        resetForm();
+    }
+    else {
+        alert("Noe gikk galt...");
+    }
+}
+async function deleteNews(id) {
+    const confirmed = confirm("Er du sikker på at du vil slette denne saken?");
+    if (!confirmed)
+        return;
+    const response = await fetch(`${BASE_URL}/news/${id}`, {
+        method: "DELETE",
+        headers: {
+            Authorization: `Bearer ${API_KEY}`,
+        },
+    });
+    if (response.ok) {
+        await fetchNews();
+    }
+}
+async function editNews(id) {
+    // Hent  den spesifikke saken fra serveren
+    const response = await fetch(`${BASE_URL}/news/${id}`);
+    const article = await response.json();
+    // Fill inn skjemaet med eksisterende data
+    const titleEl = document.getElementById("title");
+    const summaryEl = document.getElementById("summary");
+    const bodyEl = document.getElementById("body");
+    const categoryEl = document.getElementById("category");
+    const authorIdEl = document.getElementById("authorId");
+    const publishedEl = document.getElementById("published");
+    const formTitleEl = document.getElementById("form-title");
+    const submitBtnEl = document.getElementById("submit-btn");
+    if (titleEl)
+        titleEl.value = article.title;
+    if (summaryEl)
+        summaryEl.value = article.summary;
+    if (bodyEl)
+        bodyEl.value = article.body;
+    if (categoryEl)
+        categoryEl.value = article.category;
+    if (authorIdEl)
+        authorIdEl.value = article.authorId;
+    if (publishedEl)
+        publishedEl.checked = article.published;
+    if (formTitleEl)
+        formTitleEl.textContent = "Rediger nyhetssak";
+    if (submitBtnEl)
+        submitBtnEl.textContent = "Lagre endringer";
+    editingId = id;
+}
+const loginForm = document.getElementById("login-form");
+if (loginForm instanceof HTMLFormElement) {
+    loginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const emailEl = document.getElementById("login-email");
+        const passwordEl = document.getElementById("login-password");
+        const errorEl = document.getElementById("login-error");
+        const email = emailEl instanceof HTMLInputElement ? emailEl.value : "";
+        const password = passwordEl instanceof HTMLInputElement ? passwordEl.value : "";
+        const success = await login(email, password);
+        if (success && errorEl) {
+            errorEl.style.display = "none";
+            populateAuthorSelect();
+            showLoggedInView();
+        }
+        else if (errorEl) {
+            errorEl.style.display = "block";
+            errorEl.textContent = "Feil e-post eller passord.";
+        }
+    });
+}
+const newsForm = document.getElementById("news-form");
+if (newsForm) {
+    newsForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const data = {
+            title: document.getElementById("title").value,
+            summary: document.getElementById("summary").value,
+            body: document.getElementById("body").value,
+            category: document.getElementById("category")
+                .value,
+            authorId: parseInt(document.getElementById("authorId").value),
+            published: document.getElementById("published")
+                .checked,
+        };
+        console.log(data);
+        if (editingId) {
+            await updateNews(editingId, data);
+        }
+        else {
+            await createNews(data);
+        }
+    });
+}
+const cancelBtn = document.getElementById("cancel-btn");
+if (cancelBtn)
+    cancelBtn.addEventListener("click", resetForm);
+const logoutBtn = document.getElementById("logout-btn");
+if (logoutBtn)
+    logoutBtn.addEventListener("click", logout);
+function populateAuthorSelect() {
+    const authorSelect = document.getElementById("authorId");
+    if (!authorSelect)
+        return;
+    authorSelect.innerHTML = "";
+    users.forEach((user) => {
+        const option = document.createElement("option");
+        option.value = String(user.id);
+        option.textContent = user.name;
+        authorSelect.appendChild(option);
+    });
+}
+async function init() {
+    await fetchUsers();
+    await fetchNews();
+    if (isLoggedIn()) {
+        populateAuthorSelect();
+        showLoggedInView();
+    }
+    else {
+        showReadOnlyView();
+    }
+}
 init();
